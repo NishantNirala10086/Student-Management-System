@@ -1,0 +1,42 @@
+CREATE DATABASE student_system;
+USE student_system;
+
+CREATE TABLE students (
+    student_id VARCHAR(20) PRIMARY KEY,
+    name VARCHAR(100),
+    dob DATE,
+    email VARCHAR(100),
+    course VARCHAR(50)
+);
+
+CREATE TABLE academic_records (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id VARCHAR(20),
+    subject VARCHAR(50),
+    grade VARCHAR(5),
+    semester VARCHAR(10),
+    FOREIGN KEY (student_id) REFERENCES students(student_id)
+);
+
+CREATE TABLE schedule (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    course VARCHAR(50),
+    subject VARCHAR(50),
+    teacher VARCHAR(50),
+    day VARCHAR(20),
+    time_slot VARCHAR(20)
+);
+
+CREATE TABLE announcements (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(100),
+    message TEXT
+);
+
+CREATE TABLE fees (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id VARCHAR(20),
+    amount DECIMAL(10,2),
+    due_date DATE,
+    FOREIGN KEY (student_id) REFERENCES students(student_id)
+);
