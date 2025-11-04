@@ -1,12 +1,6 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
 import mysql.connector
-from mysql.connector import Error
-def create_connection():
-    try:
-        conn = mysql.connector.connect(
-            host="localhost",       
-            user="root",           
-            password="12345678",            
-            database="student_system"  import mysql.connector
 from mysql.connector import Error
 
 def create_connection():
@@ -19,471 +13,278 @@ def create_connection():
         )
         return conn
     except Error as e:
-        print("Error connecting to MySQL:", e)
+        messagebox.showerror("Database Error", str(e))
         return None
 
-def main():
-    while True:
-        print("\n===== Student Information System =====")
-        print("1. Enroll Student")
-        print("2. Add Academic Record")
-        print("3. Schedule Class")
-        print("4. Add Announcement")
-        print("5. Add Fee Record")
-        print("6. View Student Information")
-        print("7. Show Previous Entries")   # NEW
-        print("8. Exit")
-        choice = input("Select an option: ")
-        if choice == "1":
-            enroll_student()
-        elif choice == "2":
-            add_academic_record()
-        elif choice == "3":
-            schedule_class()
-        elif choice == "4":
-            add_announcement()
-        elif choice == "5":
-            add_fee()
-        elif choice == "6":
-            view_student_info()
-        elif choice == "7":
-            show_previous_entries()       # NEW
-        elif choice == "8":
-            print("Exiting...")
-            break
-        else:
-            print("Invalid option!")
+class StudentSystemApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Student Information System")
+        self.root.geometry("700x500")
+        self.root.config(bg="#f7f7f7")
 
-def enroll_student():
-    conn = create_connection()
-    if not conn: return
-    cursor = conn.cursor()
+        title = tk.Label(root, text="Student Information System", font=("Arial", 18, "bold"), bg="#4CAF50", fg="white")
+        title.pack(fill=tk.X)
 
-    student_id = input("Student ID: ")
-    name = input("Name: ")
-    dob = input("DOB (YYYY-MM-DD): ")
-    email = input("Email: ")
-    course = input("Course: ")
+        self.tabs = ttk.Notebook(root)
+        self.tabs.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-    try:
-        cursor.execute(
-            "INSERT INTO students (student_id, name, dob, email, course) VALUES (%s, %s, %s, %s, %s)",
-            (student_id, name, dob, email, course)
-        )
-        conn.commit()
-        print("Student enrolled successfully!")
-    except Error as e:
-        print("Error:", e)
-    finally:
-        cursor.close()
-        conn.close()
+        self.create_enroll_tab()
+        self.create_academic_tab()
+        self.create_schedule_tab()
+        self.create_announcement_tab()
+        self.create_fee_tab()
+        self.create_view_tab()
 
-def add_academic_record():
-    conn = create_connection()
-    if not conn: return
-    cursor = conn.cursor()
+    def create_enroll_tab(self):
+        tab = ttk.Frame(self.tabs)
+        self.tabs.add(tab, text="Enroll Student")
 
-    student_id = input("Student ID: ")
-    subject = input("Subject: ")
-    grade = input("Grade: ")
-    semester = input("Semester: ")
+        tk.Label(tab, text="Student ID").grid(row=0, column=0, padx=10, pady=5)
+        tk.Label(tab, text="Name").grid(row=1, column=0, padx=10, pady=5)
+        tk.Label(tab, text="DOB (YYYY-MM-DD)").grid(row=2, column=0, padx=10, pady=5)
+        tk.Label(tab, text="Email").grid(row=3, column=0, padx=10, pady=5)
+        tk.Label(tab, text="Course").grid(row=4, column=0, padx=10, pady=5)
 
-    try:
-        cursor.execute(
-            "INSERT INTO academic_records (student_id, subject, grade, semester) VALUES (%s, %s, %s, %s)",
-            (student_id, subject, grade, semester)
-        )
-        conn.commit()
-        print("Academic record added successfully!")
-    except Error as e:
-        print("Error:", e)
-    finally:
-        cursor.close()
-        conn.close()
+        self.student_id = tk.Entry(tab)
+        self.name = tk.Entry(tab)
+        self.dob = tk.Entry(tab)
+        self.email = tk.Entry(tab)
+        self.course = tk.Entry(tab)
 
-def schedule_class():
-    conn = create_connection()
-    if not conn: return
-    cursor = conn.cursor()
+        self.student_id.grid(row=0, column=1)
+        self.name.grid(row=1, column=1)
+        self.dob.grid(row=2, column=1)
+        self.email.grid(row=3, column=1)
+        self.course.grid(row=4, column=1)
 
-    course = input("Course: ")
-    subject = input("Subject: ")
-    teacher = input("Teacher: ")
-    day = input("Day: ")
-    time_slot = input("Time Slot: ")
+        tk.Button(tab, text="Enroll Student", bg="#4CAF50", fg="white",
+                  command=self.enroll_student).grid(row=5, column=0, columnspan=2, pady=10)
 
-    try:
-        cursor.execute(
-            "INSERT INTO schedule (course, subject, teacher, day, time_slot) VALUES (%s, %s, %s, %s, %s)",
-            (course, subject, teacher, day, time_slot)
-        )
-        conn.commit()
-        print("Class scheduled successfully!")
-    except Error as e:
-        print("Error:", e)
-    finally:
-        cursor.close()
-        conn.close()
+    def enroll_student(self):
+        conn = create_connection()
+        if not conn: return
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                "INSERT INTO students (student_id, name, dob, email, course) VALUES (%s, %s, %s, %s, %s)",
+                (self.student_id.get(), self.name.get(), self.dob.get(), self.email.get(), self.course.get())
+            )
+            conn.commit()
+            messagebox.showinfo("Success", "Student enrolled successfully!")
+            self.student_id.delete(0, tk.END)
+            self.name.delete(0, tk.END)
+            self.dob.delete(0, tk.END)
+            self.email.delete(0, tk.END)
+            self.course.delete(0, tk.END)
+        except Error as e:
+            messagebox.showerror("Error", str(e))
+        finally:
+            cursor.close()
+            conn.close()
 
-def add_announcement():
-    conn = create_connection()
-    if not conn: return
-    cursor = conn.cursor()
+    def create_academic_tab(self):
+        tab = ttk.Frame(self.tabs)
+        self.tabs.add(tab, text="Add Academic Record")
 
-    title = input("Title: ")
-    message = input("Message: ")
+        tk.Label(tab, text="Student ID").grid(row=0, column=0, padx=10, pady=5)
+        tk.Label(tab, text="Subject").grid(row=1, column=0, padx=10, pady=5)
+        tk.Label(tab, text="Grade").grid(row=2, column=0, padx=10, pady=5)
+        tk.Label(tab, text="Semester").grid(row=3, column=0, padx=10, pady=5)
 
-    try:
-        cursor.execute(
-            "INSERT INTO announcements (title, message) VALUES (%s, %s)",
-            (title, message)
-        )
-        conn.commit()
-        print("Announcement added successfully!")
-    except Error as e:
-        print("Error:", e)
-    finally:
-        cursor.close()
-        conn.close()
+        self.a_id = tk.Entry(tab)
+        self.subject = tk.Entry(tab)
+        self.grade = tk.Entry(tab)
+        self.semester = tk.Entry(tab)
 
-def add_fee():
-    conn = create_connection()
-    if not conn: return
-    cursor = conn.cursor()
+        self.a_id.grid(row=0, column=1)
+        self.subject.grid(row=1, column=1)
+        self.grade.grid(row=2, column=1)
+        self.semester.grid(row=3, column=1)
 
-    student_id = input("Student ID: ")
-    amount = input("Amount: ")
-    due_date = input("Due Date (YYYY-MM-DD): ")
+        tk.Button(tab, text="Add Record", bg="#4CAF50", fg="white",
+                  command=self.add_academic_record).grid(row=4, column=0, columnspan=2, pady=10)
 
-    try:
-        cursor.execute(
-            "INSERT INTO fees (student_id, amount, due_date) VALUES (%s, %s, %s)",
-            (student_id, amount, due_date)
-        )
-        conn.commit()
-        print("Fee record added successfully!")
-    except Error as e:
-        print("Error:", e)
-    finally:
-        cursor.close()
-        conn.close()
+    def add_academic_record(self):
+        conn = create_connection()
+        if not conn: return
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                "INSERT INTO academic_records (student_id, subject, grade, semester) VALUES (%s, %s, %s, %s)",
+                (self.a_id.get(), self.subject.get(), self.grade.get(), self.semester.get())
+            )
+            conn.commit()
+            messagebox.showinfo("Success", "Academic record added successfully!")
+        except Error as e:
+            messagebox.showerror("Error", str(e))
+        finally:
+            cursor.close()
+            conn.close()
 
-def view_student_info():
-    conn = create_connection()
-    if not conn: return
-    cursor = conn.cursor()
+    def create_schedule_tab(self):
+        tab = ttk.Frame(self.tabs)
+        self.tabs.add(tab, text="Schedule Class")
 
-    student_id = input("Enter Student ID: ")
+        tk.Label(tab, text="Course").grid(row=0, column=0, padx=10, pady=5)
+        tk.Label(tab, text="Subject").grid(row=1, column=0, padx=10, pady=5)
+        tk.Label(tab, text="Teacher").grid(row=2, column=0, padx=10, pady=5)
+        tk.Label(tab, text="Day").grid(row=3, column=0, padx=10, pady=5)
+        tk.Label(tab, text="Time Slot").grid(row=4, column=0, padx=10, pady=5)
 
-    try:
-        cursor.execute("SELECT * FROM students WHERE student_id = %s", (student_id,))
-        student = cursor.fetchone()
-        if student:
-            # Print column-labeled output for clarity
-            print("\nStudent Info:")
-            print(f"Student ID: {student[0]}")
-            print(f"Name:       {student[1]}")
-            print(f"DOB:        {student[2]}")
-            print(f"Email:      {student[3]}")
-            print(f"Course:     {student[4]}")
-        else:
-            print("Student not found.")
-    except Error as e:
-        print("Error:", e)
-    finally:
-        cursor.close()
-        conn.close()
+        self.course_s = tk.Entry(tab)
+        self.sub_s = tk.Entry(tab)
+        self.teacher_s = tk.Entry(tab)
+        self.day_s = tk.Entry(tab)
+        self.time_s = tk.Entry(tab)
 
-def show_previous_entries():
-    """Show previous entries from tables. User can choose table or view all."""
-    conn = create_connection()
-    if not conn: return
-    cursor = conn.cursor()
+        self.course_s.grid(row=0, column=1)
+        self.sub_s.grid(row=1, column=1)
+        self.teacher_s.grid(row=2, column=1)
+        self.day_s.grid(row=3, column=1)
+        self.time_s.grid(row=4, column=1)
 
-    print("\nWhich data do you want to view?")
-    print("1. Students")
-    print("2. Academic Records")
-    print("3. Schedule")
-    print("4. Announcements")
-    print("5. Fees")
-    print("6. All tables")
-    choice = input("Select an option: ")
+        tk.Button(tab, text="Add Schedule", bg="#4CAF50", fg="white",
+                  command=self.schedule_class).grid(row=5, column=0, columnspan=2, pady=10)
 
-    try:
-        if choice == "1":
-            cursor.execute("SELECT * FROM students")
+    def schedule_class(self):
+        conn = create_connection()
+        if not conn: return
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                "INSERT INTO schedule (course, subject, teacher, day, time_slot) VALUES (%s, %s, %s, %s, %s)",
+                (self.course_s.get(), self.sub_s.get(), self.teacher_s.get(), self.day_s.get(), self.time_s.get())
+            )
+            conn.commit()
+            messagebox.showinfo("Success", "Class scheduled successfully!")
+        except Error as e:
+            messagebox.showerror("Error", str(e))
+        finally:
+            cursor.close()
+            conn.close()
+
+    def create_announcement_tab(self):
+        tab = ttk.Frame(self.tabs)
+        self.tabs.add(tab, text="Add Announcement")
+
+        tk.Label(tab, text="Title").grid(row=0, column=0, padx=10, pady=5)
+        tk.Label(tab, text="Message").grid(row=1, column=0, padx=10, pady=5)
+
+        self.title_a = tk.Entry(tab)
+        self.message_a = tk.Entry(tab, width=50)
+
+        self.title_a.grid(row=0, column=1)
+        self.message_a.grid(row=1, column=1)
+
+        tk.Button(tab, text="Add Announcement", bg="#4CAF50", fg="white",
+                  command=self.add_announcement).grid(row=2, column=0, columnspan=2, pady=10)
+
+    def add_announcement(self):
+        conn = create_connection()
+        if not conn: return
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                "INSERT INTO announcements (title, message) VALUES (%s, %s)",
+                (self.title_a.get(), self.message_a.get())
+            )
+            conn.commit()
+            messagebox.showinfo("Success", "Announcement added successfully!")
+        except Error as e:
+            messagebox.showerror("Error", str(e))
+        finally:
+            cursor.close()
+            conn.close()
+
+    def create_fee_tab(self):
+        tab = ttk.Frame(self.tabs)
+        self.tabs.add(tab, text="Add Fee Record")
+
+        tk.Label(tab, text="Student ID").grid(row=0, column=0, padx=10, pady=5)
+        tk.Label(tab, text="Amount").grid(row=1, column=0, padx=10, pady=5)
+        tk.Label(tab, text="Due Date (YYYY-MM-DD)").grid(row=2, column=0, padx=10, pady=5)
+
+        self.fee_id = tk.Entry(tab)
+        self.amount = tk.Entry(tab)
+        self.due_date = tk.Entry(tab)
+
+        self.fee_id.grid(row=0, column=1)
+        self.amount.grid(row=1, column=1)
+        self.due_date.grid(row=2, column=1)
+
+        tk.Button(tab, text="Add Fee", bg="#4CAF50", fg="white",
+                  command=self.add_fee).grid(row=3, column=0, columnspan=2, pady=10)
+
+    def add_fee(self):
+        conn = create_connection()
+        if not conn: return
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                "INSERT INTO fees (student_id, amount, due_date) VALUES (%s, %s, %s)",
+                (self.fee_id.get(), self.amount.get(), self.due_date.get())
+            )
+            conn.commit()
+            messagebox.showinfo("Success", "Fee record added successfully!")
+        except Error as e:
+            messagebox.showerror("Error", str(e))
+        finally:
+            cursor.close()
+            conn.close()
+
+    def create_view_tab(self):
+        tab = ttk.Frame(self.tabs)
+        self.tabs.add(tab, text="View Data")
+
+        tk.Button(tab, text="View All Students", command=self.show_students, bg="#2196F3", fg="white").pack(pady=5)
+        tk.Button(tab, text="View Academic Records", command=self.show_academic, bg="#2196F3", fg="white").pack(pady=5)
+        tk.Button(tab, text="View Schedule", command=self.show_schedule, bg="#2196F3", fg="white").pack(pady=5)
+        tk.Button(tab, text="View Announcements", command=self.show_announcement, bg="#2196F3", fg="white").pack(pady=5)
+        tk.Button(tab, text="View Fees", command=self.show_fees, bg="#2196F3", fg="white").pack(pady=5)
+
+    def show_students(self):
+        self.show_data("SELECT * FROM students", ["ID", "Name", "DOB", "Email", "Course"], "Students")
+
+    def show_academic(self):
+        self.show_data("SELECT * FROM academic_records", ["Record ID", "Student ID", "Subject", "Grade", "Semester"], "Academic Records")
+
+    def show_schedule(self):
+        self.show_data("SELECT * FROM schedule", ["ID", "Course", "Subject", "Teacher", "Day", "Time"], "Schedule")
+
+    def show_announcement(self):
+        self.show_data("SELECT * FROM announcements", ["ID", "Title", "Message"], "Announcements")
+
+    def show_fees(self):
+        self.show_data("SELECT * FROM fees", ["ID", "Student ID", "Amount", "Due Date"], "Fees")
+
+    def show_data(self, query, columns, title):
+        conn = create_connection()
+        if not conn: return
+        cursor = conn.cursor()
+        try:
+            cursor.execute(query)
             rows = cursor.fetchall()
-            print("\n-- Students --")
-            if rows:
-                for r in rows:
-                    print(f"ID: {r[0]}, Name: {r[1]}, DOB: {r[2]}, Email: {r[3]}, Course: {r[4]}")
-            else:
-                print("No student records found.")
+            if not rows:
+                messagebox.showinfo("No Data", "No records found.")
+                return
 
-        elif choice == "2":
-            cursor.execute("SELECT * FROM academic_records")
-            rows = cursor.fetchall()
-            print("\n-- Academic Records --")
-            if rows:
-                for r in rows:
-                    print(f"RecordID: {r[0]}, StudentID: {r[1]}, Subject: {r[2]}, Grade: {r[3]}, Semester: {r[4]}")
-            else:
-                print("No academic records found.")
-
-        elif choice == "3":
-            cursor.execute("SELECT * FROM schedule")
-            rows = cursor.fetchall()
-            print("\n-- Schedule --")
-            if rows:
-                for r in rows:
-                    print(f"ID: {r[0]}, Course: {r[1]}, Subject: {r[2]}, Teacher: {r[3]}, Day: {r[4]}, Time: {r[5]}")
-            else:
-                print("No schedule entries found.")
-
-        elif choice == "4":
-            cursor.execute("SELECT * FROM announcements")
-            rows = cursor.fetchall()
-            print("\n-- Announcements --")
-            if rows:
-                for r in rows:
-                    print(f"ID: {r[0]}, Title: {r[1]}, Message: {r[2]}")
-            else:
-                print("No announcements found.")
-
-        elif choice == "5":
-            cursor.execute("SELECT * FROM fees")
-            rows = cursor.fetchall()
-            print("\n-- Fees --")
-            if rows:
-                for r in rows:
-                    print(f"ID: {r[0]}, StudentID: {r[1]}, Amount: {r[2]}, Due Date: {r[3]}")
-            else:
-                print("No fee records found.")
-
-        elif choice == "6":
-            # Students
-            cursor.execute("SELECT * FROM students")
-            rows = cursor.fetchall()
-            print("\n-- Students --")
-            if rows:
-                for r in rows:
-                    print(f"ID: {r[0]}, Name: {r[1]}, DOB: {r[2]}, Email: {r[3]}, Course: {r[4]}")
-            else:
-                print("No student records found.")
-            # Academic records
-            cursor.execute("SELECT * FROM academic_records")
-            rows = cursor.fetchall()
-            print("\n-- Academic Records --")
-            if rows:
-                for r in rows:
-                    print(f"RecordID: {r[0]}, StudentID: {r[1]}, Subject: {r[2]}, Grade: {r[3]}, Semester: {r[4]}")
-            else:
-                print("No academic records found.")
-            # Schedule
-            cursor.execute("SELECT * FROM schedule")
-            rows = cursor.fetchall()
-            print("\n-- Schedule --")
-            if rows:
-                for r in rows:
-                    print(f"ID: {r[0]}, Course: {r[1]}, Subject: {r[2]}, Teacher: {r[3]}, Day: {r[4]}, Time: {r[5]}")
-            else:
-                print("No schedule entries found.")
-            # Announcements
-            cursor.execute("SELECT * FROM announcements")
-            rows = cursor.fetchall()
-            print("\n-- Announcements --")
-            if rows:
-                for r in rows:
-                    print(f"ID: {r[0]}, Title: {r[1]}, Message: {r[2]}")
-            else:
-                print("No announcements found.")
-            # Fees
-            cursor.execute("SELECT * FROM fees")
-            rows = cursor.fetchall()
-            print("\n-- Fees --")
-            if rows:
-                for r in rows:
-                    print(f"ID: {r[0]}, StudentID: {r[1]}, Amount: {r[2]}, Due Date: {r[3]}")
-            else:
-                print("No fee records found.")
-
-        else:
-            print("Invalid option selected.")
-    except Error as e:
-        print("Error fetching data:", e)
-    finally:
-        cursor.close()
-        conn.close()
+            win = tk.Toplevel(self.root)
+            win.title(title)
+            tree = ttk.Treeview(win, columns=columns, show="headings")
+            for col in columns:
+                tree.heading(col, text=col)
+                tree.column(col, width=150)
+            for r in rows:
+                tree.insert("", tk.END, values=r)
+            tree.pack(fill=tk.BOTH, expand=True)
+        except Error as e:
+            messagebox.showerror("Error", str(e))
+        finally:
+            cursor.close()
+            conn.close()
 
 if __name__ == "__main__":
-    main()
-
-        )
-        return conn
-    except Error as e:
-        print("Error connecting to MySQL:", e)
-        return None
-def main():
-    while True:
-        print("\n===== Student Information System =====")
-        print("1. Enroll Student")
-        print("2. Add Academic Record")
-        print("3. Schedule Class")
-        print("4. Add Announcement")
-        print("5. Add Fee Record")
-        print("6. View Student Information")
-        print("7. Exit")
-        choice = input("Select an option: ")
-        if choice == "1":
-            enroll_student()
-        elif choice == "2":
-            add_academic_record()
-        elif choice == "3":
-            schedule_class()
-        elif choice == "4":
-            add_announcement()
-        elif choice == "5":
-            add_fee()
-        elif choice == "6":
-            view_student_info()
-        elif choice == "7":
-            print("Exiting...")
-            break
-        else:
-            print("Invalid option!")
-def enroll_student():
-    conn = create_connection()
-    if not conn: return
-    cursor = conn.cursor()
-
-    student_id = input("Student ID: ")
-    name = input("Name: ")
-    dob = input("DOB (YYYY-MM-DD): ")
-    email = input("Email: ")
-    course = input("Course: ")
-
-    try:
-        cursor.execute(
-            "INSERT INTO students (student_id, name, dob, email, course) VALUES (%s, %s, %s, %s, %s)",
-            (student_id, name, dob, email, course)
-        )
-        conn.commit()
-        print("Student enrolled successfully!")
-    except Error as e:
-        print("Error:", e)
-    finally:
-        cursor.close()
-        conn.close()
-
-def add_academic_record():
-    conn = create_connection()
-    if not conn: return
-    cursor = conn.cursor()
-
-    student_id = input("Student ID: ")
-    subject = input("Subject: ")
-    grade = input("Grade: ")
-    semester = input("Semester: ")
-
-    try:
-        cursor.execute(
-            "INSERT INTO academic_records (student_id, subject, grade, semester) VALUES (%s, %s, %s, %s)",
-            (student_id, subject, grade, semester)
-        )
-        conn.commit()
-        print("Academic record added successfully!")
-    except Error as e:
-        print("Error:", e)
-    finally:
-        cursor.close()
-        conn.close()
-
-def schedule_class():
-    conn = create_connection()
-    if not conn: return
-    cursor = conn.cursor()
-
-    course = input("Course: ")
-    subject = input("Subject: ")
-    teacher = input("Teacher: ")
-    day = input("Day: ")
-    time_slot = input("Time Slot: ")
-
-    try:
-        cursor.execute(
-            "INSERT INTO schedule (course, subject, teacher, day, time_slot) VALUES (%s, %s, %s, %s, %s)",
-            (course, subject, teacher, day, time_slot)
-        )
-        conn.commit()
-        print("Class scheduled successfully!")
-    except Error as e:
-        print("Error:", e)
-    finally:
-        cursor.close()
-        conn.close()
-
-def add_announcement():
-    conn = create_connection()
-    if not conn: return
-    cursor = conn.cursor()
-
-    title = input("Title: ")
-    message = input("Message: ")
-
-    try:
-        cursor.execute(
-            "INSERT INTO announcements (title, message) VALUES (%s, %s)",
-            (title, message)
-        )
-        conn.commit()
-        print("Announcement added successfully!")
-    except Error as e:
-        print("Error:", e)
-    finally:
-        cursor.close()
-        conn.close()
-
-def add_fee():
-    conn = create_connection()
-    if not conn: return
-    cursor = conn.cursor()
-
-    student_id = input("Student ID: ")
-    amount = input("Amount: ")
-    due_date = input("Due Date (YYYY-MM-DD): ")
-
-    try:
-        cursor.execute(
-            "INSERT INTO fees (student_id, amount, due_date) VALUES (%s, %s, %s)",
-            (student_id, amount, due_date)
-        )
-        conn.commit()
-        print("Fee record added successfully!")
-    except Error as e:
-        print("Error:", e)
-    finally:
-        cursor.close()
-        conn.close()
-
-def view_student_info():
-    conn = create_connection()
-    if not conn: return
-    cursor = conn.cursor()
-
-    student_id = input("Enter Student ID: ")
-
-    try:
-        cursor.execute("SELECT * FROM students WHERE student_id = %s", (student_id,))
-        student = cursor.fetchone()
-        if student:
-            print("Student Info:", student)
-        else:
-            print("Student not found.")
-    except Error as e:
-        print("Error:", e)
-    finally:
-        cursor.close()
-        conn.close()
-if __name__ == "__main__":
-    main()
-
+    root = tk.Tk()
+    app = StudentSystemApp(root)
+    root.mainloop()
